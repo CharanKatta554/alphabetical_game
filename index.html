@@ -95,15 +95,15 @@ p {
 }
 
 .words {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 images per row */
+  gap: 28px; /* space between image cards */
+  justify-items: center;
   margin-top: 20px;
 }
 
 .card {
-  width: 160px;
-  margin: 10px;
+  width: 100%;
   padding: 10px;
   background: white;
   border-radius: 12px;
@@ -172,7 +172,7 @@ p {
 
 <body>
 
-<h1>🔤 Alphabet Game (A–Z)</h1>
+<h1>🔤 Alphabet Game</h1>
 <p>Click a letter → click image → hear the word</p>
 
 <button class="back-button" onclick="goBackToAlphabets()">← Back to Alphabets</button>
@@ -228,7 +228,11 @@ const modalCaption = imageModal.querySelector(".image-modal-caption");
 Object.keys(alphabet).forEach(letter => {
   const btn = document.createElement("button");
   btn.textContent = letter;
-  btn.onclick = () => showWords(letter);
+  btn.onclick = () => {
+    // Play the alphabet name when the letter is clicked
+    speak(letter);
+    showWords(letter);
+  };
   lettersDiv.appendChild(btn);
 });
 
