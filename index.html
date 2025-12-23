@@ -167,10 +167,156 @@ p {
   text-align: center;
   color: #333;
 }
+
+/* Loading screen styles */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #ffecd2 0%, #fcb69f 40%, #ff9a9e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.loading-screen.hidden {
+  display: none;
+}
+
+.loading-content {
+  text-align: center;
+  color: #333;
+}
+
+.loading-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.loading-subtitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.loader-animation {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.loader-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffcc00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #333;
+  animation: bounce 1s infinite ease-in-out;
+}
+
+.loader-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.loader-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.loader-dot:nth-child(4) {
+  animation-delay: 0.45s;
+}
+.loader-dot:nth-child(5) {
+  animation-delay: 0.6s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.start-button {
+  margin-top: 10px;
+  padding: 12px 28px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 999px;
+  border: none;
+  background: #4CAF50;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.start-button:hover {
+  background: #43a047;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
+/* Mobile-friendly tweaks for loading screen */
+@media (max-width: 600px) {
+  .loading-content {
+    padding: 0 16px;
+  }
+
+  .loading-title {
+    font-size: 24px;
+  }
+
+  .loading-subtitle {
+    font-size: 16px;
+  }
+
+  .loader-animation {
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .loader-dot {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  .start-button {
+    width: 100%;
+    max-width: 260px;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- Loading screen -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-content">
+    <div class="loading-title">Welcome to the Alphabet Game</div>
+    <div class="loading-subtitle">Learn letters with fun pictures and sounds!</div>
+    <div class="loader-animation">
+      <div class="loader-dot">A</div>
+      <div class="loader-dot">B</div>
+      <div class="loader-dot">C</div>
+      <div class="loader-dot">D</div>
+      <div class="loader-dot">Z</div>
+    </div>
+    <button id="start-btn" class="start-button">Let&apos;s Go!</button>
+  </div>
+</div>
+
+<!-- Background music (only for loading screen) -->
+<audio id="bg-music" src="assets/kid-366901.mp3" loop playsinline></audio>
 
 <h1>🔤 Alphabet Game</h1>
 <p>Click a letter → click image → hear the word</p>
@@ -223,6 +369,44 @@ const backButton = document.querySelector(".back-button");
 const imageModal = document.querySelector(".image-modal");
 const modalImg = imageModal.querySelector("img");
 const modalCaption = imageModal.querySelector(".image-modal-caption");
+const bgMusic = document.getElementById("bg-music");
+const loadingScreen = document.getElementById("loading-screen");
+const startBtn = document.getElementById("start-btn");
+
+let welcomeMusicStarted = false;
+
+// Start welcome music only while on loading screen (needs user tap because of browser rules)
+if (loadingScreen && bgMusic) {
+  loadingScreen.addEventListener("click", (event) => {
+    // If user clicked the "Let's Go" button, don't start music (it will be stopped anyway)
+    if (event.target === startBtn || event.target.closest && event.target.closest("#start-btn")) {
+      return;
+    }
+    if (!welcomeMusicStarted) {
+      bgMusic.muted = false;
+      bgMusic.currentTime = 0;
+      bgMusic.play().then(() => {
+        welcomeMusicStarted = true;
+      }).catch(() => {
+        // If browser still blocks autoplay, there's nothing more we can do without another user action
+      });
+    }
+  });
+}
+
+// Handle "Let's Go" button: hide loading screen and STOP background music
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    if (loadingScreen) {
+      loadingScreen.classList.add("hidden");
+    }
+    if (bgMusic) {
+      bgMusic.pause();
+      bgMusic.currentTime = 0;
+      bgMusic.muted = true; // be extra sure no sound after leaving welcome screen
+    }
+  });
+}
 
 // Create alphabet buttons
 Object.keys(alphabet).forEach(letter => {
