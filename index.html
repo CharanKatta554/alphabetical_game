@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alphabet Game A–Z (Images)</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f8ff;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+p {
+  margin-top: 0;
+  color: #444;
+}
+
+.letters {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.letters button {
+  font-size: 18px;
+  margin: 4px;
+  padding: 10px 14px;
+  background: #ffcc00;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  flex: 0 0 auto;
+}
+
+.letters button:hover {
+  background: #ffb300;
+}
+
+.back-button {
+  display: none;
+  margin: 15px auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.back-button:hover {
+  background: #45a049;
+}
+
+.back-button.show {
+  display: block;
+}
+
+.letters.hidden {
+  display: none;
+}
+
+/* Mobile view: 2 alphabets per row */
+@media (max-width: 768px) {
+  .letters {
+    max-width: 100%;
+  }
+  
+  .letters button {
+    width: calc(50% - 12px);
+    font-size: 20px;
+    padding: 15px 10px;
+    margin: 6px;
+  }
+  
+  .card {
+    width: calc(50% - 20px);
+    margin: 10px;
+  }
+  
+  .card p {
+    font-size: 16px;
+  }
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.card {
+  width: 160px;
+  margin: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.card img {
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.card p {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 6px 0 0;
+}
+
+/* Fullscreen image modal */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.image-modal.show {
+  display: flex;
+}
+
+.image-modal-content {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+}
+
+.image-modal-content img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.image-modal-caption {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔤 Alphabet Game (A–Z)</h1>
+<p>Click a letter → click image → hear the word</p>
+
+<button class="back-button" onclick="goBackToAlphabets()">← Back to Alphabets</button>
+<div class="letters"></div>
+<div class="words"></div>
+
+<!-- Fullscreen image viewer -->
+<div class="image-modal" onclick="closeImageModal()">
+  <div class="image-modal-content" onclick="event.stopPropagation()">
+    <img src="" alt="" />
+    <div class="image-modal-caption"></div>
+  </div>
+</div>
+
+<script>
+const alphabet = {
+  A: ["Apple","Ant","Aeroplane","Arrow","Anchor"],
+  B: ["Ball","Bat","Banana","Bear","Bird"],
+  C: ["Cat","Car","Cake","Cup","Crown"],
+  D: ["Dog","Duck","Drum","Door","Dolphin"],
+  E: ["Elephant","Egg","Eagle","Earth","Eye"],
+  F: ["Fish","Fan","Flower","Fox","Frog"],
+  G: ["Goat","Grapes","Guitar","Giraffe","Gift"],
+  H: ["Hen","Hat","Horse","House","Heart"],
+  I: ["Ice cream","Igloo","Ink","Iron","Insect"],
+  J: ["Jug","Jet","Juice","Jellyfish","Jungle"],
+  K: ["Kite","Key","King","Kangaroo","Koala"],
+  L: ["Lion","Lamp","Leaf","Lemon","Lotus"],
+  M: ["Mango","Monkey","Moon","Mouse","Mountain"],
+  N: ["Nest","Net","Nose","Needle","Notebook"],
+  O: ["Orange","Owl","Ox","Octopus","Ocean"],
+  P: ["Parrot","Pen","Pencil","Pineapple","Panda"],
+  Q: ["Queen","Quilt","Quail","Quartz","Question"],
+  R: ["Rabbit","Rose","Rainbow","Rocket","Robot"],
+  S: ["Sun","Ship","Star","Snake","Strawberry"],
+  T: ["Tiger","Table","Train","Tree","Turtle"],
+  U: ["Umbrella","Uniform","Unicorn","Ukulele","Universe"],
+  V: ["Van","Violin","Vase","Volcano","Violet"],
+  W: ["Watch","Water","Whale","Window","Wolf"],
+  X: ["Xylophone","X-ray","Xmas","Xenon"],
+  Y: ["Yak","Yoyo","Yacht","Yarn","Yellow"],
+  Z: ["Zebra","Zoo","Zipper","Zero","Zucchini"]
+};
+
+const lettersDiv = document.querySelector(".letters");
+const wordsDiv = document.querySelector(".words");
+const backButton = document.querySelector(".back-button");
+const imageModal = document.querySelector(".image-modal");
+const modalImg = imageModal.querySelector("img");
+const modalCaption = imageModal.querySelector(".image-modal-caption");
+
+// Create alphabet buttons
+Object.keys(alphabet).forEach(letter => {
+  const btn = document.createElement("button");
+  btn.textContent = letter;
+  btn.onclick = () => showWords(letter);
+  lettersDiv.appendChild(btn);
+});
+
+// Go back to alphabet screen
+function goBackToAlphabets() {
+  lettersDiv.classList.remove("hidden");
+  backButton.classList.remove("show");
+  wordsDiv.innerHTML = "";
+}
+
+// Map word names to webp file names
+function getWebpPath(word) {
+  // Convert word to lowercase and handle special cases
+  const wordMap = {
+    "aeroplane": "aeroplane.webp",
+    "anchor": "anchpor.webp", // Note: file is named "anchpor.webp"
+    "ant": "ant.webp",
+    "apple": "apple.webp",
+    "arrow": "arrow.webp",
+    "ice cream": "Ice cream.webp"
+  };
+  
+  const lowerWord = word.toLowerCase();
+  
+  // Check if there's a specific mapping
+  if (wordMap[lowerWord]) {
+    return `assets/${wordMap[lowerWord]}`;
+  }
+  
+  // Default: use lowercase word as filename (spaces are allowed)
+  const fileName = `${lowerWord}.webp`;
+  return `assets/${fileName}`;
+}
+
+function openImageModal(src, caption) {
+  modalImg.src = src;
+  modalImg.alt = caption;
+  modalCaption.textContent = caption;
+  imageModal.classList.add("show");
+}
+
+function closeImageModal() {
+  imageModal.classList.remove("show");
+}
+
+// Show words + images
+function showWords(letter) {
+  // Hide alphabet buttons and show back button
+  lettersDiv.classList.add("hidden");
+  backButton.classList.add("show");
+  
+  wordsDiv.innerHTML = "";
+
+  alphabet[letter].forEach(word => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // Use local webp files from assets folder
+    const imgUrl = getWebpPath(word);
+
+    const img = document.createElement("img");
+    img.src = imgUrl;
+    img.alt = word;
+    img.loading = "lazy";
+
+    // Fallback image if webp doesn't exist
+    img.onerror = () => {
+      img.src = `https://dummyimage.com/300x200/87cefa/000&text=${encodeURIComponent(word)}`;
+    };
+
+    const label = document.createElement("p");
+    label.textContent = word;
+
+    card.appendChild(img);
+    card.appendChild(label);
+
+    card.onclick = () => {
+      speak(word);
+    };
+    wordsDiv.appendChild(card);
+  });
+}
+
+// Text-to-Speech
+function speak(text) {
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.rate = 0.8;
+  msg.pitch = 1.2;
+  window.speechSynthesis.speak(msg);
+}
+</script>
+
+</body>
+</html>
